@@ -1,4 +1,4 @@
-package com.github.oxyzero.volt.channels;
+package com.github.oxyzero.volt.middleware;
 
 import com.github.oxyzero.volt.Request;
 
@@ -9,7 +9,7 @@ import java.util.*;
  * 
  * @author Renato Machado
  */
-public class MessageSentChannel implements Channel {
+public class MessageSentMiddleware implements Middleware {
     
     /**
      * Where the message is being sent from.
@@ -21,7 +21,7 @@ public class MessageSentChannel implements Channel {
      */
     private final List<Observer> observers;
     
-    public MessageSentChannel(String from, Observer... observers)
+    public MessageSentMiddleware(String from, Observer... observers)
     {
         this.from = from;
         

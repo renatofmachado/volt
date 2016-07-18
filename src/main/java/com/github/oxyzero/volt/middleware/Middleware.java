@@ -1,18 +1,17 @@
-package com.github.oxyzero.volt.channels;
+package com.github.oxyzero.volt.middleware;
 
 import com.github.oxyzero.volt.Request;
 
 import java.util.Map;
 
 /**
- * This class represents a Channel which consists of filtering information during
+ * This interface consists on building a contract to filter information during
  * the lifetime of a request by using simple hooks that get called in certain
- * points of Volt execution. This allows to create powerful extensions as
- * well as easily manipulate the information that goes inside Volt.
+ * points of Volt execution.
  * 
  * @author Renato Machado
  */
-public interface Channel {
+public interface Middleware {
     
     /**
      * Triggers before the execution of a request.

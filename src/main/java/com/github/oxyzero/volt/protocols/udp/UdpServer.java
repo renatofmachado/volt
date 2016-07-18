@@ -312,18 +312,18 @@ public class UdpServer extends Server {
         
         Request request = new Request(arguments);
         
-        this.executeBeforeChannels(request);
-        
+        this.executeBeforeMiddlewares(request);
+
         synchronized (action) {
             action.run(request);
         }
-        
-        this.executeAfterChannels(request);
+
+        this.executeAfterMiddlewares(request);
     }
-    
+
     /**
      * Sends a given message to the route of the target.
-     * 
+     *
      * @param route Route defined by the target.
      * @param target IPv4 and Port (separated by ":")
      * @param message Message to send, no headers.
@@ -337,32 +337,32 @@ public class UdpServer extends Server {
         } catch (NullPointerException e) {
             return;
         }
-        
+
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("volt-message", message);
         arguments.put("volt-length", message.length());
         arguments.put("volt-route", route);
         arguments.put("volt-target", target);
         arguments.put("volt-from", target);
-        
+
         Request request = new Request(arguments);
-        
-        this.executeBeforeChannels(request);
+
+        this.executeBeforeMiddlewares(request);
 
         message = request.message();
-        
+
         int parts = 0, length = message.length();
-        
+
         CRC32 checkRoute = new CRC32();
         CRC32 checkMessage = new CRC32();
-        
+
         try {
             checkRoute.update(route.getBytes("UTF-8"));
             checkMessage.update(route.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(UdpServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         // Check if the message is a multipart message.
         if (length > 512) {
             while (length > 0) {
@@ -386,10 +386,10 @@ public class UdpServer extends Server {
 
         this.protocol(route, target, parts, message);
     }
-    
+
     /**
      * Sets a action for a expected route.
-     * 
+     *
      * @param route Expected route.
      * @param action Action to be executed.
      */
@@ -402,7 +402,7 @@ public class UdpServer extends Server {
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(UdpServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         synchronized (this.routes) {
             this.routes.put(route, action);
             this.hashedRoutes.put(String.valueOf(checksum.getValue()), route);
@@ -420,17 +420,17 @@ public class UdpServer extends Server {
 
         this.listen(route, connection);
     }
-    
+
     /**
      * Neglects an expected route.
-     * 
+     *
      * @param route Route to be neglected.
      */
     @Override
     public void forget(String route) {
         synchronized (this.routes) {
             this.routes.remove(route);
-            
+
             for (Map.Entry<String, String> entry : this.hashedRoutes.entrySet()) {
                 if (entry.getValue().equals(route)) {
                     this.hashedRoutes.remove(entry.getKey());
@@ -438,15 +438,15 @@ public class UdpServer extends Server {
                 }
             }
         }
-        
-        synchronized (this.channels) {
-            this.channels.remove(route);
+
+        synchronized (this.middlewares) {
+            this.middlewares.remove(route);
         }
     }
-    
+
     /**
      * Gets all of the routes.
-     * 
+     *
      * @return Routes.
      */
     public Map<String, Connection> routes() {
@@ -472,7 +472,7 @@ public class UdpServer extends Server {
                 Logger.getLogger(UdpServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
         if (target.startsWith("all")) {
             target = target.replace("all", "255.255.255.255");
             try {
@@ -512,7 +512,7 @@ public class UdpServer extends Server {
                 messages[i - 1] = header + part;
 
             }
-            
+
             String[] targetData = target.split(":");
 
             if (targetData.length != 2) {
@@ -520,15 +520,15 @@ public class UdpServer extends Server {
             }
 
             int port = Integer.parseInt(targetData[1]);
-            
-            InetAddress address = null;
-            
+
+            InetAddress address;
+
             try {
                 address = InetAddress.getByName(targetData[0]);
             } catch (UnknownHostException ex) {
                 return;
             }
-            
+
             for (String part : messages) {
                 try {
                     DatagramPacket packet = new DatagramPacket(part.getBytes("UTF-8"), part.length(), address, port);
@@ -541,7 +541,7 @@ public class UdpServer extends Server {
                     return;
                 }
             }
-            
+
             Map<String, Object> arguments = new HashMap<>();
             arguments.put("volt-message", message);
             arguments.put("volt-length", message.length());
@@ -551,11 +551,11 @@ public class UdpServer extends Server {
             arguments.put("volt-hostname", address.getHostName());
             arguments.put("volt-address", address);
             arguments.put("volt-packets", parts);
-            
+
             Request request = new Request(arguments);
-            
-            this.executeAfterChannels(request);
-            
+
+            this.executeAfterMiddlewares(request);
+
             try {
                 this.server().setBroadcast(false);
                 return;
@@ -569,11 +569,11 @@ public class UdpServer extends Server {
             String packetMessage = header + "@" + message;
 
             String[] targetData = target.split(":");
-            
+
             if (targetData.length != 2) {
                 throw new IllegalArgumentException("The target must be consisted of a IPv4 and a Port separated by \":\". Example: all:8000");
             }
-            
+
             int port = Integer.parseInt(targetData[1]);
 
             try {
@@ -584,11 +584,11 @@ public class UdpServer extends Server {
                 } catch (UnknownHostException ex) {
                     return;
                 }
-                
+
                 DatagramPacket packet = new DatagramPacket(packetMessage.getBytes("UTF-8"), packetMessage.length(), address, port);
                 this.server().send(packet);
                 this.server().setBroadcast(false);
-                
+
                 Map<String, Object> arguments = new HashMap<>();
                 arguments.put("volt-message", message);
                 arguments.put("volt-length", message.length());
@@ -598,10 +598,10 @@ public class UdpServer extends Server {
                 arguments.put("volt-hostname", address.getHostName());
                 arguments.put("volt-address", address);
                 arguments.put("volt-packets", parts);
-                
+
                 Request request = new Request(arguments);
 
-                this.executeAfterChannels(request);
+                this.executeAfterMiddlewares(request);
             } catch (UnknownHostException | UnsupportedEncodingException | SocketException ex) {
                 return;
             } catch (IOException ex) {

@@ -190,8 +190,8 @@ public class TcpServer extends Server {
             this.routes.remove(route);
         }
         
-        synchronized (this.channels) {
-            this.channels.remove(route);
+        synchronized (this.middlewares) {
+            this.middlewares.remove(route);
         }
     }
 
@@ -241,7 +241,7 @@ public class TcpServer extends Server {
         
         Request request = new Request(arguments);
         
-        this.executeBeforeChannels(request);
+        this.executeBeforeMiddlewares(request);
 
         message = (String) arguments.get("volt-message");
 
@@ -319,11 +319,11 @@ public class TcpServer extends Server {
         
         Request data = new Request(args);
         
-        this.executeBeforeChannels(data);
+        this.executeBeforeMiddlewares(data);
         
         action.run(new Request(args));
         
-        this.executeAfterChannels(data);
+        this.executeAfterMiddlewares(data);
     }
 
     /**
@@ -360,7 +360,7 @@ public class TcpServer extends Server {
             
             Request data = new Request(args);
             
-            this.executeAfterChannels(data);
+            this.executeAfterMiddlewares(data);
             
             socket.close();
         } catch (IOException ex) {

@@ -6,26 +6,23 @@ import com.github.oxyzero.volt.Volt;
 public class UdpTest {
 
     public static void main(String[] args) {
-
-        Volt.kill(30600, 15);
+        Volt.kill(30600, 2);
 
         Server server = Volt.udp(30600);
 
-        server.listen(":message|:name", request -> {
-            System.out.println(request.get("message").get(0) + request.get("name").get(0));
+        server.listen(":hello", request -> {
+            System.out.println(request.message());
         });
 
         UdpClient client = new UdpClient();
-        client.after(1).every(3).send(":message|:name", "all:30600", "Hello, |Renato!");
-
-
-
+        client.send(":hello", "all:30600", "Meet Volt.")
+            .after(1).stop();
 
         /**Volt.debug();
 
         Server server = Volt.udp(30600);
 
-        server.channel("*", new MessageDecryptionChannel("AcklWq203FgSSVgH"));
+        server.channel("*", new MessageDecryptionMiddleware("AcklWq203FgSSVgH"));
 
         server.listen(":hello", new Connection() {
             
@@ -61,7 +58,7 @@ public class UdpTest {
 
         final UdpClient client = new UdpClient(0);
         
-        client.client().channel("*", new MessageEncryptionChannel("AcklWq203FgSSVgH"));
+        client.client().channel("*", new MessageEncryptionMiddleware("AcklWq203FgSSVgH"));
         
         final TaskManager tm = new TaskManager();
         

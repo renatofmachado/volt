@@ -1,15 +1,15 @@
-package com.github.oxyzero.volt.channels;
+package com.github.oxyzero.volt.middleware;
 
 import com.github.oxyzero.volt.Request;
 
 import java.util.*;
 
 /**
- * This channel allows to notify every observer of the messages sent.
+ * This middleware allows to notify every observer of the messages sent.
  * 
  * @author Renato Machado
  */
-public class MessageReceivedChannel implements Channel {
+public class MessageReceivedMiddleware implements Middleware {
 
     /**
      * Where the message is being received from.
@@ -21,11 +21,10 @@ public class MessageReceivedChannel implements Channel {
      */
     private final List<Observer> observers;
 
-    public MessageReceivedChannel(String from, Observer... observers) {
+    public MessageReceivedMiddleware(String from, Observer... observers) {
         this.from = from;
 
-        this.observers = new ArrayList<>();
-        this.observers.addAll(Arrays.asList(observers));
+        this.observers = Arrays.asList(observers);
     }
 
     @Override

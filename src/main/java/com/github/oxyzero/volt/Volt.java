@@ -1,6 +1,6 @@
 package com.github.oxyzero.volt;
 
-import com.github.oxyzero.volt.channels.Channel;
+import com.github.oxyzero.volt.middleware.Middleware;
 import com.github.oxyzero.volt.protocols.tcp.TcpServer;
 import com.github.oxyzero.volt.protocols.udp.UdpServer;
 import com.github.oxyzero.volt.support.Task;
@@ -37,9 +37,9 @@ public class Volt {
     private static PrintStream output = null;
     
     /**
-     * Volt global channels.
+     * Volt global middleware.
      */
-    private final static Map<String, List<Channel>> channels = new HashMap<>();
+    private final static Map<String, List<Middleware>> middlewares = new HashMap<>();
     
     /**
      * Puts Volt in debug mode.
@@ -347,45 +347,45 @@ public class Volt {
     }
     
     /**
-     * Creates a new global channel for a given route.
+     * Creates a new global middleware for a given route.
      *
-     * @param route Route that will trigger the channel. If given a '*', the
-     * channels will be applied to every route.
-     * @param channels Channels to be executed.
+     * @param route Route that will trigger the middleware. If given a '*', the
+     * middleware will be applied to every route.
+     * @param middlewares Middlewares to be executed.
      */
-    public static void channel(String route, Channel... channels)
+    public static void middleware(String route, Middleware... middlewares)
     {
-        synchronized (Volt.channels) {
-            if (!Volt.channels.containsKey(route)) {
-                Volt.channels.put(route, new ArrayList<>());
+        synchronized (Volt.middlewares) {
+            if (!Volt.middlewares.containsKey(route)) {
+                Volt.middlewares.put(route, new ArrayList<>());
             }
 
-            Volt.channels.get(route).addAll(Arrays.asList(channels));
+            Volt.middlewares.get(route).addAll(Arrays.asList(middlewares));
         }
     }
     
     /**
-     * Drops all the global channels of a given route.
+     * Drops all the global middleware of a given route.
      * 
-     * @param route Route that have channels associated.
+     * @param route Route that have middleware associated.
      */
-    public static void dropChannels(String route)
+    public static void dropMiddlewares(String route)
     {
-        if (Volt.channels.containsKey(route)) {
-            Volt.channels.remove(route);
+        if (Volt.middlewares.containsKey(route)) {
+            Volt.middlewares.remove(route);
         }
     }
     
     /**
-     * Gets the global channels of Volt.
+     * Gets the global middleware of Volt.
      *
      * @param route Route.
-     * @return Route channels, or null if no route was found.
+     * @return Route middleware, or null if no route was found.
      */
-    public static List<Channel> getRouteChannels(String route) {
-        synchronized (Volt.channels) {
-            if (Volt.channels.containsKey(route)) {
-                return Volt.channels.get(route);
+    public static List<Middleware> getRouteMiddlewares(String route) {
+        synchronized (Volt.middlewares) {
+            if (Volt.middlewares.containsKey(route)) {
+                return Volt.middlewares.get(route);
             }
         }
 

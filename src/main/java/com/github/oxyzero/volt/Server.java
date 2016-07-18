@@ -1,6 +1,6 @@
 package com.github.oxyzero.volt;
 
-import com.github.oxyzero.volt.channels.Channel;
+import com.github.oxyzero.volt.middleware.Middleware;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -19,9 +19,9 @@ public abstract class Server {
     protected final Map<String, Object> dependencies;
     
     /**
-     * Route channels.
+     * Route middleware.
      */
-    protected final Map<String, List<Channel>> channels;
+    protected final Map<String, List<Middleware>> middlewares;
     
     /**
      * Server connected port.
@@ -35,7 +35,7 @@ public abstract class Server {
 
     protected Server() {
         this.dependencies = new HashMap<>();
-        this.channels = new HashMap<>();
+        this.middlewares = new HashMap<>();
         this.active = false;
         this.connectedPort = -1;
     }
@@ -115,34 +115,34 @@ public abstract class Server {
     }
     
     /**
-     * Creates a new channel for a given route.
+     * Creates a new middleware for a given route.
      * 
-     * @param route Route that will trigger the channel. If given a '*', the
-     * channels will be applied to every route.
-     * @param channels Channels to be executed.
+     * @param route Route that will trigger the middleware. If given a '*', the
+     * middleware will be applied to every route.
+     * @param middlewares Middleware to be executed.
      */
-    public void channel(String route, Channel... channels)
+    public void middleware(String route, Middleware... middlewares)
     {
-        synchronized (this.channels) {
-            if (! this.channels.containsKey(route)) {
-                this.channels.put(route, new ArrayList<>());
+        synchronized (this.middlewares) {
+            if (! this.middlewares.containsKey(route)) {
+                this.middlewares.put(route, new ArrayList<>());
             }
 
-            this.channels.get(route).addAll(Arrays.asList(channels));
+            this.middlewares.get(route).addAll(Arrays.asList(middlewares));
         }
     }
     
     /**
-     * Gets the channels of a route.
+     * Gets the middleware of a route.
      * 
      * @param route Route.
-     * @return Routes channels, or null if no route was found.
+     * @return Routes middleware, or null if no route was found.
      */
-    public List<Channel> getRouteChannels(String route) 
+    private List<Middleware> getRouteMiddleware(String route)
     {
-        synchronized (this.channels) {
-            if (this.channels.containsKey(route)) {
-                return this.channels.get(route);
+        synchronized (this.middlewares) {
+            if (this.middlewares.containsKey(route)) {
+                return this.middlewares.get(route);
             }
         }
         
@@ -150,91 +150,91 @@ public abstract class Server {
     }
     
     /**
-     * Executes all before channels.
+     * Executes all before middleware.
      * 
      * @param request Request data.
      */
-    protected void executeBeforeChannels(Request request)
+    protected void executeBeforeMiddlewares(Request request)
     {
-        synchronized (this.channels) {
-            List<Channel> channels = getRouteChannels("*");
+        synchronized (this.middlewares) {
+            List<Middleware> middlewares = getRouteMiddleware("*");
             
-            if (channels != null) {
-                // Execute all of the wildcard channels.
-                for (Channel channel : channels) {
-                    channel.before(request, dependencies);
+            if (middlewares != null) {
+                // Execute all of the wildcard middleware.
+                for (Middleware middleware : middlewares) {
+                    middleware.before(request, dependencies);
                 }
             }
             
-            channels = getRouteChannels(request.route());
+            middlewares = getRouteMiddleware(request.route());
             
-            if (channels != null) {
-                // Execute all the before channels.
-                for (Channel channel : channels) {
-                    channel.before(request, dependencies);
+            if (middlewares != null) {
+                // Execute all the before middleware.
+                for (Middleware middleware : middlewares) {
+                    middleware.before(request, dependencies);
                 }
             }
             
-            channels = Volt.getRouteChannels("*");
+            middlewares = Volt.getRouteMiddlewares("*");
 
-            if (channels != null) {
-                // Execute all of the global wildcard channels.
-                for (Channel channel : channels) {
-                    channel.before(request, dependencies);
+            if (middlewares != null) {
+                // Execute all of the global wildcard middleware.
+                for (Middleware middleware : middlewares) {
+                    middleware.before(request, dependencies);
                 }
             }
 
-            channels = Volt.getRouteChannels(request.route());
+            middlewares = Volt.getRouteMiddlewares(request.route());
 
-            if (channels != null) {
-                // Execute all the before global channels.
-                for (Channel channel : channels) {
-                    channel.before(request, dependencies);
+            if (middlewares != null) {
+                // Execute all the before global middleware.
+                for (Middleware middleware : middlewares) {
+                    middleware.before(request, dependencies);
                 }
             }
         }
     }
     
     /**
-     * Executes all after channels.
+     * Executes all after middleware.
      *
      * @param request Request data.
      */
-    protected void executeAfterChannels(Request request) {
-        synchronized (this.channels) {
-            List<Channel> channels = getRouteChannels("*");
+    protected void executeAfterMiddlewares(Request request) {
+        synchronized (this.middlewares) {
+            List<Middleware> middlewares = getRouteMiddleware("*");
 
-            if (channels != null) {
-                // Execute all of the wildcard channels.
-                for (Channel channel : channels) {
-                    channel.after(request, dependencies);
+            if (middlewares != null) {
+                // Execute all of the wildcard middleware.
+                for (Middleware middleware : middlewares) {
+                    middleware.after(request, dependencies);
                 }
             }
 
-            channels = getRouteChannels(request.route());
+            middlewares = getRouteMiddleware(request.route());
 
-            if (channels != null) {
-                // Execute all the after channels.
-                for (Channel channel : channels) {
-                    channel.after(request, dependencies);
+            if (middlewares != null) {
+                // Execute all the after middleware.
+                for (Middleware middleware : middlewares) {
+                    middleware.after(request, dependencies);
                 }
             }
             
-            channels = Volt.getRouteChannels("*");
+            middlewares = Volt.getRouteMiddlewares("*");
 
-            if (channels != null) {
-                // Execute all of the global wildcard channels.
-                for (Channel channel : channels) {
-                    channel.after(request, dependencies);
+            if (middlewares != null) {
+                // Execute all of the global wildcard middleware.
+                for (Middleware middleware : middlewares) {
+                    middleware.after(request, dependencies);
                 }
             }
 
-            channels = Volt.getRouteChannels(request.route());
+            middlewares = Volt.getRouteMiddlewares(request.route());
 
-            if (channels != null) {
-                // Execute all the after global channels.
-                for (Channel channel : channels) {
-                    channel.after(request, dependencies);
+            if (middlewares != null) {
+                // Execute all the after global middleware.
+                for (Middleware middleware : middlewares) {
+                    middleware.after(request, dependencies);
                 }
             }
         }
