@@ -1,8 +1,12 @@
 package com.github.oxyzero.volt.middleware;
 
 import com.github.oxyzero.volt.Request;
+import com.github.oxyzero.volt.support.Container;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Observer;
 
 /**
  * This channel allows to notify every observer of the messages sent.
@@ -30,10 +34,10 @@ public class MessageSentMiddleware implements Middleware {
     }
 
     @Override
-    public void before(Request request, Map<String, Object> dependencies) {}
+    public void before(Request request, Container container) {}
 
     @Override
-    public void after(Request request, Map<String, Object> dependencies) {
+    public void after(Request request, Container container) {
         String message = this.from + request.route() + ": " + request.message();
         
         for (Observer observer : this.observers) {

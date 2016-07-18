@@ -1,9 +1,8 @@
 package com.github.oxyzero.volt.middleware;
 
 import com.github.oxyzero.volt.Request;
+import com.github.oxyzero.volt.support.Container;
 import com.github.oxyzero.volt.support.Encrypter;
-
-import java.util.Map;
 
 /**
  * This middleware allows the decryption of a message before the action is executed.
@@ -30,7 +29,7 @@ public class MessageDecryptionMiddleware implements Middleware {
     }
 
     @Override
-    public void before(Request request, Map<String, Object> dependencies) {
+    public void before(Request request, Container container) {
         String message = request.message();
         
         try {
@@ -45,6 +44,6 @@ public class MessageDecryptionMiddleware implements Middleware {
     }
 
     @Override
-    public void after(Request request, Map<String, Object> dependencies) {}
+    public void after(Request request, Container container) {}
 
 }

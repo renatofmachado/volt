@@ -1,6 +1,7 @@
 package com.github.oxyzero.volt.middleware;
 
 import com.github.oxyzero.volt.Request;
+import com.github.oxyzero.volt.support.Container;
 
 import java.util.Map;
 
@@ -19,7 +20,7 @@ public interface Middleware {
      * @param request The received request.
      * @param dependencies The server dependencies.
      */
-    void before(Request request, Map<String, Object> dependencies);
+    void before(Request request, Container container);
     
     /**
      * Triggers after the execution of a request.
@@ -27,5 +28,5 @@ public interface Middleware {
      * @param request The received request.
      * @param dependencies The server dependencies.
      */
-    void after(Request request, Map<String, Object> dependencies);
+    void after(Request request, Container container);
 }

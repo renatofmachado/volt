@@ -1,6 +1,8 @@
 package com.github.oxyzero.volt;
 
 import com.github.oxyzero.volt.middleware.Middleware;
+import com.github.oxyzero.volt.support.Container;
+import com.github.oxyzero.volt.support.ServiceProvider;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -16,7 +18,7 @@ public abstract class Server {
     /**
      * Dependency Injection.
      */
-    protected final Map<String, Object> dependencies;
+    protected final Container services;
     
     /**
      * Route middleware.
@@ -34,7 +36,7 @@ public abstract class Server {
     protected boolean active;
 
     protected Server() {
-        this.dependencies = new HashMap<>();
+        this.services = new Container();
         this.middlewares = new HashMap<>();
         this.active = false;
         this.connectedPort = -1;
@@ -81,37 +83,41 @@ public abstract class Server {
     }
     
     /**
-     * Allows Volt to access the given dependency through a key.
+     * Registers a service that Volt can use.
      * 
-     * @param key Dependency key.
-     * @param dependency Dependency.
+     * @param key Service key.
+     * @param provider Service Provider.
      */
-    public void use(String key, Object dependency)
+    public void register(String key, ServiceProvider<Object> provider)
     {
-        this.dependencies.put(key, dependency);
+        this.register(key, provider, false);
     }
-    
+
     /**
-     * Allows Volt to access the given objects through its keys.
-     * 
-     * @param dependencies Multidimensional array containing in each row a String and a Object.
+     * Registers a service that Volt can use.
+     *
+     * @param key Service key.
+     * @param provider Service Provider.
+     * @param singleton If the service is a singleton.
      */
-    public void use(Object[][] dependencies)
-    {
-        for (Object[] dependency : dependencies) {
-            this.use((String) dependency[0], dependency[1]);
+    public void register(String key, ServiceProvider<Object> provider, boolean singleton) {
+        if (singleton) {
+            this.services.singleton(key, provider);
+        } else {
+            this.services.register(key, provider);
         }
     }
-    
+
+
     /**
-     * Returns the object from the given key.
+     * Resolves the given key from the service container.
      * 
-     * @param key Dependency key.
-     * @return Dependency or null if key does not exist.
+     * @param key Service key.
+     * @return Service result.
      */
-    public Object get(String key)
+    public Object resolve(String key)
     {
-        return this.dependencies.get(key);
+        return this.services.resolve(key);
     }
     
     /**
@@ -162,7 +168,7 @@ public abstract class Server {
             if (middlewares != null) {
                 // Execute all of the wildcard middleware.
                 for (Middleware middleware : middlewares) {
-                    middleware.before(request, dependencies);
+                    middleware.before(request, services);
                 }
             }
             
@@ -171,7 +177,7 @@ public abstract class Server {
             if (middlewares != null) {
                 // Execute all the before middleware.
                 for (Middleware middleware : middlewares) {
-                    middleware.before(request, dependencies);
+                    middleware.before(request, services);
                 }
             }
             
@@ -180,7 +186,7 @@ public abstract class Server {
             if (middlewares != null) {
                 // Execute all of the global wildcard middleware.
                 for (Middleware middleware : middlewares) {
-                    middleware.before(request, dependencies);
+                    middleware.before(request, services);
                 }
             }
 
@@ -189,7 +195,7 @@ public abstract class Server {
             if (middlewares != null) {
                 // Execute all the before global middleware.
                 for (Middleware middleware : middlewares) {
-                    middleware.before(request, dependencies);
+                    middleware.before(request, services);
                 }
             }
         }
@@ -207,7 +213,7 @@ public abstract class Server {
             if (middlewares != null) {
                 // Execute all of the wildcard middleware.
                 for (Middleware middleware : middlewares) {
-                    middleware.after(request, dependencies);
+                    middleware.after(request, services);
                 }
             }
 
@@ -216,7 +222,7 @@ public abstract class Server {
             if (middlewares != null) {
                 // Execute all the after middleware.
                 for (Middleware middleware : middlewares) {
-                    middleware.after(request, dependencies);
+                    middleware.after(request, services);
                 }
             }
             
@@ -225,7 +231,7 @@ public abstract class Server {
             if (middlewares != null) {
                 // Execute all of the global wildcard middleware.
                 for (Middleware middleware : middlewares) {
-                    middleware.after(request, dependencies);
+                    middleware.after(request, services);
                 }
             }
 
@@ -234,7 +240,7 @@ public abstract class Server {
             if (middlewares != null) {
                 // Execute all the after global middleware.
                 for (Middleware middleware : middlewares) {
-                    middleware.after(request, dependencies);
+                    middleware.after(request, services);
                 }
             }
         }
