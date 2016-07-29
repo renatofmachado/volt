@@ -1,22 +1,25 @@
 package com.github.oxyzero.volt.protocols.udp;
 
+import com.github.oxyzero.volt.Client;
 import com.github.oxyzero.volt.Server;
 import com.github.oxyzero.volt.Volt;
 
 public class UdpTest {
 
     public static void main(String[] args) {
-        Volt.kill(30600, 2);
+        //Volt.kill(30600, 2);
 
-        Server server = Volt.udp(30600);
+        Server server = Volt.server("udp", 30600);
 
-        server.listen(":hello", request -> {
+        server.listen(":message", (request) -> {
             System.out.println(request.message());
         });
 
-        UdpClient client = new UdpClient();
-        client.send(":hello", "all:30600", "Meet Volt.")
-            .after(1).stop();
+        Client client = Volt.client("udp");
+
+        client.after(1).every(1).send(":message", "all:30600", "Hello Volt!")
+              .after(5).stop();
+
         /**Volt.debug();
 
         Server server = Volt.udp(30600);

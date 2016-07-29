@@ -1,21 +1,11 @@
 package com.github.oxyzero.volt.protocols.tcp;
 
-import com.github.oxyzero.volt.Connection;
-import com.github.oxyzero.volt.Request;
-import com.github.oxyzero.volt.Requester;
-import com.github.oxyzero.volt.Volt;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class TcpServerTest {
 
     public static void main(String[] args) {
-        Volt.debug();
-        
         // Prototype
         
-        List<Requester> users = new ArrayList<>();
+        /**List<Requester> users = new ArrayList<>();
         
         TcpServer server = Volt.tcp(0);
         
@@ -49,11 +39,11 @@ public class TcpServerTest {
                     }
                 }
             }
-            **/
+            /
             
         });
                 
-                
+            **/
                 
                 
                 

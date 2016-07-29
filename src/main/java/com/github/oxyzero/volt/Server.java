@@ -4,8 +4,6 @@ import com.github.oxyzero.volt.middleware.Middleware;
 import com.github.oxyzero.volt.support.Container;
 import com.github.oxyzero.volt.support.ServiceProvider;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -266,18 +264,5 @@ public abstract class Server {
     public String target(String target)
     {
         return target + ":" + this.getPort();
-    }
-    
-    /**
-     * Returns the signature of the server.
-     *
-     * @return IPv4 and Port (separated by ":")
-     */
-    public String signature() {
-        try {
-            return InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException ex) {
-            return "0.0.0.0";
-        }
     }
 }

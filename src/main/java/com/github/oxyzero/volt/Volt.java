@@ -3,6 +3,8 @@ package com.github.oxyzero.volt;
 import com.github.oxyzero.volt.middleware.Middleware;
 import com.github.oxyzero.volt.protocols.tcp.TcpServer;
 import com.github.oxyzero.volt.protocols.udp.UdpServer;
+import com.github.oxyzero.volt.support.ClientFactory;
+import com.github.oxyzero.volt.support.ServerFactory;
 import com.github.oxyzero.volt.support.Task;
 import com.github.oxyzero.volt.support.TaskManager;
 
@@ -28,151 +30,61 @@ public class Volt {
     private final static Map<String, List<Middleware>> middlewares = new HashMap<>();
 
     /**
-     * Builds a new instance of the UDP server, or gets the current server
-     * that is bound to that port.
-     * 
-     * @param port Port.
-     * @return UdpServer instance or throws an exception.
-     */
-    public static UdpServer udp(final int port)
-    {
-        synchronized (instances) {
-            if (instances.containsKey(port)) {
-                
-                if (instances.get(port) instanceof UdpServer) {
-                    
-                    if (! instances.get(port).isActive()) {
-                        try {
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    instances.get(port).stream(port);
-                                }
-                            }.start();
-                        } catch (IllegalArgumentException e) {
-                            throw e;
-                        }
-                    }
-
-                    return (UdpServer) instances.get(port);
-                }
-                
-                throw new IllegalArgumentException("The given port is already bound to another service that is not a UDP Server.\n\n");
-            }
-
-            final UdpServer server = new UdpServer();
-            
-            try {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        server.stream(port);
-                    }
-                }.start();
-            } catch (IllegalArgumentException e) {
-                throw e;
-            }
-            
-            instances.put(port, server);
-            
-            return server;
-        }
-    }
-    
-    /**
-     * Builds a new instance of the UDP server, or gets the current server that
-     * is bound to that port. If unable to get a server on the given port, it
-     * uses the fallback port.
+     * Generates a server based on its protocol.
      *
-     * @param port Port.
-     * @param fallback Fallback port.
-     * @return UdpServer instance or throws an exception.
-     */
-    public static UdpServer udp(int port, int fallback)
-    {
-        try {
-            return Volt.udp(port);
-        } catch (Exception portException) {
-            try {
-                return Volt.udp(fallback);
-            } catch (Exception fallbackException) {
-                throw new IllegalArgumentException(fallbackException.getMessage());
-            }
-        }
-    }
-    
-    /**
-     * Builds a new instance of the TCP server, or gets the current server that
-     * is bound to that port.
+     * If the server was already instantiated, it returns the server.
      *
-     * @param port Port.
-     * @return TcpServer instance or throws an exception.
+     * @param protocol Server protocol.
+     * @param port Server port.
+     * @return Server
      */
-    public static TcpServer tcp(final int port)
+    public static Server server(String protocol, int port)
     {
-        synchronized (instances) {
-            if (instances.containsKey(port)) {
-                
-                if (instances.get(port) instanceof TcpServer) {
-                    
-                    if (! instances.get(port).isActive()) {
-                        try {
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    instances.get(port).stream(port);
-                                }
-                            }.start();
-                        } catch (IllegalArgumentException e) {
-                            throw e;
-                        }
-                    }
-                    
-                    return (TcpServer) instances.get(port);
-                }
-                
-                throw new IllegalArgumentException("The given port is already bound to another service that is not a TCP Server.");
-            }
-            
-            final TcpServer server = new TcpServer();
-
-            try {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        server.stream(port);
-                    }
-                }.start();
-            } catch (IllegalArgumentException e) {
-                throw e;
-            }
-            
-            instances.put(port, server);
-
-            return server;
+        if (port < 0) {
+            throw new IllegalArgumentException("Invalid port was given.");
         }
+
+        if (instances.containsKey(port)) {
+            Server server = instances.get(port);
+
+            if (server instanceof UdpServer && protocol.equalsIgnoreCase("udp")) {
+                return server;
+            }
+
+            if (server instanceof TcpServer && protocol.equalsIgnoreCase("tcp")) {
+                return server;
+            }
+
+            throw new IllegalArgumentException("The port " + port + " is associated with another protocol.");
+        }
+
+        Server server = new ServerFactory().make(protocol, port);
+
+        instances.put(port, server);
+
+        return server;
     }
-    
+
     /**
-     * Builds a new instance of the TCP server, or gets the current server that
-     * is bound to that port. If unable to get a server on the given port, it
-     * uses the fallback port.
+     * Generates a client based on its protocol.
      *
-     * @param port Port.
-     * @param fallback Fallback port.
-     * @return TcpServer instance or throws an exception.
+     * @param protocol Client Protocol.
+     * @param port Client port.
+     * @return Client
      */
-    public static TcpServer tcp(int port, int fallback)
-    {
-        try {
-            return Volt.tcp(port);
-        } catch (Exception portException) {
-            try {
-                return Volt.tcp(fallback);
-            } catch (Exception fallbackException) {
-                throw new IllegalArgumentException(fallbackException.getMessage());
-            }
-        }
+    public static Client client(String protocol, int port) {
+        return new ClientFactory().make(protocol, port);
+    }
+
+    /**
+     * Generates a client based on its protocol.
+     * It will use a dynamic port.
+     *
+     * @param protocol Client Protocol.
+     * @return Client
+     */
+    public static Client client(String protocol) {
+        return Volt.client(protocol, 0);
     }
     
     /**
