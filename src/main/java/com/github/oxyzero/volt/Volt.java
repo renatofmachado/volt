@@ -6,10 +6,8 @@ import com.github.oxyzero.volt.protocols.udp.UdpServer;
 import com.github.oxyzero.volt.support.Task;
 import com.github.oxyzero.volt.support.TaskManager;
 
-import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -23,85 +21,12 @@ public class Volt {
      * Current active Volt services.
      */ 
     private static final Map<Integer, Server> instances = new HashMap<>();
-    
-    /**
-     * Allows Volt to print stack traces and output debug information.
-     * 
-     * Note: This is not advised to be used in a production environment.
-     */
-    private static boolean DEBUG = false;
-    
-    /**
-     * Print Stream to output debug information.
-     */
-    private static PrintStream output = null;
-    
+
     /**
      * Volt global middleware.
      */
     private final static Map<String, List<Middleware>> middlewares = new HashMap<>();
-    
-    /**
-     * Puts Volt in debug mode.
-     * 
-     * @param out Print Stream to be used.
-     */
-    public static void debug(PrintStream out)
-    {
-        DEBUG = true;
-        output = out;
-    }
-    
-    /**
-     * Puts Volt in debug mode with the default print stream.
-     */
-    public static void debug()
-    {
-        debug(System.out);
-    }
-    
-    /**
-     * Prints a message with the current date in debug mode.
-     * 
-     * @param message Message.
-     */
-    private static void date(String message)
-    {
-        if (DEBUG) { 
-            print(new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime()) + " - " + message); 
-        }
-    }
-    
-    /**
-     * Prints a message in debug mode.
-     * 
-     * @param message Message.
-     */
-    private static void print(String message)
-    {
-        if (DEBUG) {
-            output.println(message);
-        }
-    }
-    
-    /**
-     * Provides a stack trace in debug mode.
-     */
-    private static void stacktrace()
-    {
-        if (DEBUG) {
-            date("Volt: Start of Stack Trace");
-            
-            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-            
-            for (int i = 2; i < stackTraceElements.length; i++) {
-                print(stackTraceElements[i].toString());
-            }
-            
-            print("Volt: End of Stack Trace");
-        }
-    }
-    
+
     /**
      * Builds a new instance of the UDP server, or gets the current server
      * that is bound to that port.
@@ -111,20 +36,12 @@ public class Volt {
      */
     public static UdpServer udp(final int port)
     {
-        stacktrace();
-        
         synchronized (instances) {
             if (instances.containsKey(port)) {
                 
-                date("Volt is currently using the port " + port + " on the server: " + instances.get(port).toString());
-                
                 if (instances.get(port) instanceof UdpServer) {
                     
-                    date("The port " + port + " currently belongs to a UdpServer.");
-                    
                     if (! instances.get(port).isActive()) {
-                        date("The port " + port + ", with an instance of UdpServer is now going to be activated.");
-                        
                         try {
                             new Thread() {
                                 @Override
@@ -133,21 +50,16 @@ public class Volt {
                                 }
                             }.start();
                         } catch (IllegalArgumentException e) {
-                            date("Volt could not open the port " + port + " to a UdpServer instance because: " + e.getMessage() + "\n\n");
                             throw e;
                         }
                     }
-                    
-                    date("The port " + port + " is currently active in a UdpServer instance: " + instances.get(port).toString() + "\n\n");
-                    
+
                     return (UdpServer) instances.get(port);
                 }
                 
                 throw new IllegalArgumentException("The given port is already bound to another service that is not a UDP Server.\n\n");
             }
-            
-            date("Volt is now reserving the port " + port + " to a instance of UdpServer.");
-            
+
             final UdpServer server = new UdpServer();
             
             try {
@@ -158,11 +70,8 @@ public class Volt {
                     }
                 }.start();
             } catch (IllegalArgumentException e) {
-                date("Volt could not open the port " + port + " to a UdpServer instance because: " + e.getMessage() + "\n\n");
                 throw e;
             }
-            
-            date("Volt successfully reserved the port " + port + " to a UdpServer instance @ " + server.toString() + "\n\n");
             
             instances.put(port, server);
             
@@ -185,10 +94,8 @@ public class Volt {
             return Volt.udp(port);
         } catch (Exception portException) {
             try {
-                print("Volt was unable to use the port " + port + ". Trying with the fallback port: " + fallback);
                 return Volt.udp(fallback);
             } catch (Exception fallbackException) {
-                print("Volt was unable to use the fallback port " + fallback);
                 throw new IllegalArgumentException(fallbackException.getMessage());
             }
         }
@@ -203,20 +110,12 @@ public class Volt {
      */
     public static TcpServer tcp(final int port)
     {
-        stacktrace();
-        
         synchronized (instances) {
             if (instances.containsKey(port)) {
                 
-                date("Volt is currently using the port " + port + " on the server: " + instances.get(port).toString());
-                
                 if (instances.get(port) instanceof TcpServer) {
                     
-                    date("The port " + port + " currently belongs to a TcpServer.");
-                    
                     if (! instances.get(port).isActive()) {
-                        date("The port " + port + ", with an instance of TcpServer is now going to be activated.");
-
                         try {
                             new Thread() {
                                 @Override
@@ -225,20 +124,15 @@ public class Volt {
                                 }
                             }.start();
                         } catch (IllegalArgumentException e) {
-                            date("Volt could not open the port " + port + " to a UdpServer instance because: " + e.getMessage() + "\n\n");
                             throw e;
                         }
                     }
-                    
-                    date("The port " + port + " is currently active in a TcpServer instance: " + instances.get(port).toString() + "\n\n");
                     
                     return (TcpServer) instances.get(port);
                 }
                 
                 throw new IllegalArgumentException("The given port is already bound to another service that is not a TCP Server.");
             }
-            
-            date("Volt is now reserving the port " + port + " to a instance of TcpServer.");
             
             final TcpServer server = new TcpServer();
 
@@ -250,11 +144,8 @@ public class Volt {
                     }
                 }.start();
             } catch (IllegalArgumentException e) {
-                date("Volt could not open the port " + port + " to a TcpServer instance because: " + e.getMessage() + "\n\n");
                 throw e;
             }
-            
-            date("Volt successfully reserved the port " + port + " to a TcpServer instance @ " + server.toString() + "\n\n");
             
             instances.put(port, server);
 
@@ -277,10 +168,8 @@ public class Volt {
             return Volt.tcp(port);
         } catch (Exception portException) {
             try {
-                print("Volt was unable to use the port " + port + ". Trying with the fallback port: " + fallback);
                 return Volt.tcp(fallback);
             } catch (Exception fallbackException) {
-                print("Volt was unable to use the fallback port " + fallback);
                 throw new IllegalArgumentException(fallbackException.getMessage());
             }
         }
@@ -294,17 +183,11 @@ public class Volt {
      */
     public static void stop(int port)
     {
-        stacktrace();
-        
-        print("Volt is trying to stop the port " + port);
-        
         synchronized (instances) {
             if (! instances.containsKey(port)) {
-                print("Volt isn't aware of port " + port);
                 throw new IllegalArgumentException("Volt does not know about any service running on port " + port);
             }
             
-            print("Volt is stopping port " + port + " of the server: " + instances.get(port).toString());
             instances.get(port).shutdown();
         }
     }
@@ -320,7 +203,6 @@ public class Volt {
         Volt.stop(port);
         
         synchronized (instances) {
-            print("Volt is removing the port " + port + " of the server: " + instances.get(port).toString());
             instances.remove(port);
         }
     }

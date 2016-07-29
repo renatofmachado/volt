@@ -17,7 +17,6 @@ public class UdpTest {
         UdpClient client = new UdpClient();
         client.send(":hello", "all:30600", "Meet Volt.")
             .after(1).stop();
-
         /**Volt.debug();
 
         Server server = Volt.udp(30600);
