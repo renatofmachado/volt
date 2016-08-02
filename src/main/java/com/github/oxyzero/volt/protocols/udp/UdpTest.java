@@ -4,82 +4,71 @@ import com.github.oxyzero.volt.Client;
 import com.github.oxyzero.volt.Server;
 import com.github.oxyzero.volt.Volt;
 
+import java.util.Scanner;
+
 public class UdpTest {
 
     public static void main(String[] args) {
-        //Volt.kill(30600, 2);
+        Server server = Volt.server("tcp", 30600);
 
-        Server server = Volt.server("udp", 30600);
+        server.listen(":calculator", (request) -> {
+            String operation = null;
 
-        server.listen(":message", (request) -> {
-            System.out.println(request.message());
+            while (true) {
+                operation = request.listen();
+
+                if (operation == null) {
+                    continue;
+                }
+
+                if (operation.equals("exit")) {
+                    break;
+                }
+
+                String[] data = operation.split("\\+");
+
+                int result = 0;
+                for (String number : data) {
+                    number = number.trim();
+
+                    if (number.isEmpty()) {
+                        continue;
+                    }
+
+                    result += Integer.parseInt(number.trim());
+                }
+
+                request.reply(result);
+                System.out.print("");
+
+            }
         });
 
-        Client client = Volt.client("udp");
+        Client client = Volt.client("tcp");
+
+        Scanner scanner = new Scanner(System.in);
+
+        client.send(":calculator", Volt.localhost(30600), (request) -> {
+            while (true) {
+                String argument = "";
+                    System.out.println("Sum: ");
+                    argument = scanner.nextLine();
+
+                    request.reply(argument.trim());
+
+                    if (argument.equals("exit")) {
+                        return;
+                    }
+
+                    String result = request.listen();
+
+                    System.out.println("Result: " + result);
+                    System.out.print("");
+            }
+        });
 
         client.after(1).every(1).send(":message", "all:30600", "Hello Volt!")
               .after(5).stop();
-
-        /**Volt.debug();
-
-        Server server = Volt.udp(30600);
-
-        server.channel("*", new MessageDecryptionMiddleware("AcklWq203FgSSVgH"));
-
-        server.listen(":hello", new Connection() {
-            
-            @Override
-            public void run(Request request) {
-                System.out.println(request.get("hello").get(0));
-                
-            }
-        });
-        
-        server.listen(":broadcast", new Connection() {
-            @Override
-            public void run(Request request) {
-
-                // Improved same method.
-//                if (request.same()) {
-//                    return;
-//                }
-
-                System.out.println("Message: " + request.message());
-                System.out.println("From: " + request.from());
-                System.out.println("Port: " + request.port());
-                System.out.println("Requester: " + request.requester());
-                System.out.println("Hostname: " + request.hostname());
-                System.out.println("Route: " + request.route());
-                System.out.println("Length: " + request.length());
-                System.out.println("Packets: " + request.packets());
-                System.out.println("\n\n");
-                
-                server.send(":hello", server.target(request.from()), "Hello there.");
-            }
-        });
-
-        final UdpClient client = new UdpClient(0);
-        
-        client.client().channel("*", new MessageEncryptionMiddleware("AcklWq203FgSSVgH"));
-        
-        final TaskManager tm = new TaskManager();
-        
-        tm.after(2).every(3).fire(new Task() {
-            public void fire() {
-                System.out.println("Number of active threads from the given thread: " + Thread.activeCount());
-                
-                client.send(":broadcast", "all:30600", "Hello from Volt.");
-                client.send(":broadcast", "all:30600", "Hello from Volt. Hello from Volt. Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt.Hello from Volt. YOOOOO");
-            }
-        })
-                .after(20).once(new Task() {
-                    public void fire() {
-                        Volt.kill(30600);
-                        tm.destroy();
-                    }
-                }
-                );
-    */
     }
 
 }

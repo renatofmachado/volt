@@ -22,7 +22,12 @@ public abstract class Server {
      * Route middleware.
      */
     protected final Map<String, List<Middleware>> middlewares;
-    
+
+    /**
+     * Routes.
+     */
+    protected final Map<String, Connection> routes;
+
     /**
      * Server connected port.
      */
@@ -38,6 +43,7 @@ public abstract class Server {
         this.middlewares = new HashMap<>();
         this.active = false;
         this.connectedPort = -1;
+        this.routes = new HashMap<>();
     }
 
     /**
@@ -60,7 +66,7 @@ public abstract class Server {
      * @param port The port number.
      */
     public abstract void stream(int port);
-    
+
     public abstract void listen(String route, Connection action);
 
     public abstract void listen(String route, Consumer<Request> action);

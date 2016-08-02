@@ -3,6 +3,8 @@ package com.github.oxyzero.volt;
 import com.github.oxyzero.volt.support.Task;
 import com.github.oxyzero.volt.support.TaskManager;
 
+import java.util.function.Consumer;
+
 /**
  * This class represents a client that allows to quickly send a message to a
  * Volt server instance.
@@ -68,7 +70,13 @@ public abstract class Client extends TaskManager {
 
         return this;
     }
-    
+
+    public abstract Client send(String headers, String target, Connection connection);
+
+    public abstract Client send(String headers, String target, Consumer<Request> action);
+
+    public abstract Client reply(Request request, Object response);
+
     /**
      * Returns the target IPv4:Port.
      * 

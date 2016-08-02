@@ -49,17 +49,6 @@ public abstract class Connection {
     public void onExit() {}
     
     /**
-     * Determines when a connection can be closed.
-     * 
-     * Usually this should be meant for direct connections.
-     * 
-     * @return True if it the connection can be disconnected, false otherwise.
-     */
-    public boolean canDisconnect() {
-        return false;
-    }
-    
-    /**
      * Gets the TCP Socket.
      * 
      * @return TCP Socket if the connection is a TCP connection.

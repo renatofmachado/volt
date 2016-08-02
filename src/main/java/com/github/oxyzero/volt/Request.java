@@ -1,6 +1,7 @@
 package com.github.oxyzero.volt;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -21,10 +22,16 @@ public class Request {
      * The arguments to build up the request.
      */
     private final Map<String, Object> args;
-    
+
+    /**
+     * Requester.
+     */
+    private final Requester requester;
+
     public Request(Map<String, Object> args) 
     {
         this.args = args;
+        this.requester = new Requester(args);
     }
     
     /**
@@ -35,6 +42,7 @@ public class Request {
     public void message(String message)
     {
         this.args.put("volt-message", message);
+        this.args.put("volt-length", ((String) this.args.get("volt-message")).length());
     }
     
     /**
@@ -56,71 +64,15 @@ public class Request {
     {
         return (Integer) this.args.get("volt-length");
     }
-    
-    /**
-     * Puts a new from on the "from" argument.
-     *
-     * @param from New from.
-     */
-    public void from(String from) {
-        this.args.put("volt-from", from);
-    }
-    
-    /**
-     * Gets the IPv4 that sent the request.
-     * 
-     * @return The IPv4 of the requester.
-     */
-    public String from()
-    {
-        return ((String) this.args.get("volt-from")).split(":")[0];
-    }
-    
-    /**
-     * Puts a new port on the "port" argument.
-     *
-     * @param port New port.
-     */
-    public void port(int port) {
-        this.args.put("volt-port", port);
-    }
-    
-    /**
-     * Gets the port that sent the request.
-     *
-     * @return The port of the requester.
-     */
-    public int port() {
-        return Integer.valueOf(((String) this.args.get("volt-from")).split(":")[1]);
-    }
-    
+
     /**
      * Returns the IPv4 and port of the requester, separated by a ':'.
      * 
      * @return IPv4 and port of the requester.
      */
-    public String requester()
+    public Requester requester()
     {
-        return (String) this.args.get("volt-from");
-    }
-    
-    /**
-     * Puts a new hostname on the "hostname" argument.
-     *
-     * @param hostname New hostname.
-     */
-    public void hostname(String hostname) {
-        this.args.put("volt-hostname", hostname);
-    }
-    
-    /**
-     * Gets the hostname that is associated to the requester address.
-     * 
-     * @return Hostname based on the requester address.
-     */
-    public String hostname()
-    {
-        return (String) this.args.get("volt-hostname");
+        return this.requester;
     }
     
     /**
@@ -132,61 +84,7 @@ public class Request {
     {
         return (String) this.args.get("volt-route");
     }
-    
-    /**
-     * Puts a new address on the "address" argument.
-     *
-     * @param address New address.
-     */
-    public void address(InetAddress address) {
-        this.args.put("volt-address", address);
-    }
-    
-    /**
-     * Returns the InetAddress of the requester.
-     * 
-     * @return InetAddress of the requester.
-     */
-    public InetAddress address()
-    {
-        return (InetAddress) this.args.get("volt-address");
-    }
-    
-    /**
-     * Puts a new target on the "target" argument.
-     *
-     * @param target New target.
-     */
-    public void target(String target) {
-        this.args.put("volt-target", target);
-    }
-    
-    /**
-     * Returns the target IPv4:Port.
-     * Should only be used for client-side actions.
-     * 
-     * @return Target IPv4:Port or null if not available.
-     */
-    public String target()
-    {
-        return (String) this.args.get("volt-target");
-    }
-    
-    /**
-     * Returns the number of total packets that were received.
-     * This method should be used for UDP requests only.
-     * 
-     * @return Number of total packets received. -1 if the request is not a UDP request.
-     */
-    public int packets()
-    {
-        if (this.args.containsKey("volt-packets")) {
-            return Integer.parseInt((String) this.args.get("volt-packets"));
-        }
-        
-        return -1;
-    }
-    
+
     /**
      * Returns the TCP socket. This method should be used for
      * TCP requests only.
@@ -197,7 +95,7 @@ public class Request {
     {
         return (Socket) this.args.get("volt-socket");
     }
-    
+
     /**
      * Returns the input stream from the socket. This method
      * should be used for TCP requests only.
@@ -208,7 +106,7 @@ public class Request {
     {
         return (BufferedReader) this.args.get("volt-input");
     }
-    
+
     /**
      * Returns the output stream from the socket. This method should be used for
      * TCP requests only.
@@ -245,7 +143,23 @@ public class Request {
     {
         return (List<String>) this.args.get(variable);
     }
-    
+
+    public String listen() {
+        byte[] response = new byte[1024];
+
+        try {
+            this.socket().getInputStream().read(response);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("IO Exception.");
+        }
+
+        return new String(response).trim();
+    }
+
+    public <V> void reply(V value) {
+        this.output().println(value);
+    }
+
     /**
      * Checks if the requester is the same as the current user.
      * This is useful to block broadcast signals.
@@ -254,7 +168,7 @@ public class Request {
      */
     public boolean same()
     {
-        String requester = this.from();
+        String requester = this.requester().from();
         
         try {
             Enumeration e = NetworkInterface.getNetworkInterfaces();

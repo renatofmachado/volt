@@ -24,12 +24,7 @@ public class UdpServer extends Server {
      * Server instance.
      */
     private DatagramSocket server;
-    
-    /**
-     * Routes.
-     */
-    private final Map<String, Connection> routes;
-    
+
     /**
      * Given an hashed route, return the associated route.
      */
@@ -48,7 +43,6 @@ public class UdpServer extends Server {
         super();
         
         this.server = null;
-        this.routes = new HashMap<>();
         this.packets = new HashMap<>();
         this.hashedRoutes = new HashMap<>();
     }
@@ -293,7 +287,7 @@ public class UdpServer extends Server {
             }
         } catch (NullPointerException e) {}
     }
-    
+
     private void handleAction(Map<String, String> headers, String client, InetAddress address, String message)
     {
         final Map<String, Object> arguments = new HashMap<>();

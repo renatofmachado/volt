@@ -24,15 +24,9 @@ public class TcpServer extends Server {
      */
     protected ServerSocket server;
 
-    /**
-     * Routes.
-     */
-    protected final Map<String, Connection> routes;
-
     public TcpServer()
     {
         super();
-        this.routes = new HashMap<>();
     }
 
     public ServerSocket server()
