@@ -117,6 +117,10 @@ public class TcpServer extends Server {
 
         this.boot(port);
 
+        if (port == 0 || super.connectedPort == -1) {
+            super.connectedPort = this.server().getLocalPort();
+        }
+
         while (this.isActive()) {
             try {
                 final Socket socket = this.server.accept();

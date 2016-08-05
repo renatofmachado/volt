@@ -184,7 +184,11 @@ public class UdpServer extends Server {
         } catch (IllegalArgumentException e) {
             throw e;
         }
-        
+
+        if (port == 0 || super.connectedPort == -1) {
+            super.connectedPort = this.server().getLocalPort();
+        }
+
         while (isActive()) {
             try {
                 
