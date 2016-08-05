@@ -6,16 +6,31 @@ import com.github.oxyzero.volt.protocols.udp.UdpServer;
 
 public class ServerFactory {
 
-    public Server make(String protocol, int port) {
-        final Server server;
-
+    /**
+     * Creates a server with the given protocol.
+     *
+     * @param protocol Server protocol.
+     * @return Server inactive instance.
+     */
+    public Server create(String protocol) {
         if (protocol.equalsIgnoreCase("udp")) {
-            server = new UdpServer();
+            return new UdpServer();
         } else if (protocol.equalsIgnoreCase("tcp")) {
-            server = new TcpServer();
-        } else {
-            throw new IllegalArgumentException("The protocol " + protocol + " is invalid.");
+            return new TcpServer();
         }
+
+        throw new IllegalArgumentException("The protocol " + protocol + " is invalid.");
+    }
+
+    /**
+     * Creates and streams a server with the given protocol.
+     *
+     * @param protocol Server protocol.
+     * @param port Server port.
+     * @return Server active instance.
+     */
+    public Server make(String protocol, int port) {
+        final Server server = this.create(protocol);
 
         try {
             new Thread() {
