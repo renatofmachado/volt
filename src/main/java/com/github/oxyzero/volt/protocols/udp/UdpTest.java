@@ -1,74 +1,26 @@
 package com.github.oxyzero.volt.protocols.udp;
 
-import com.github.oxyzero.volt.Client;
-import com.github.oxyzero.volt.Server;
-import com.github.oxyzero.volt.Volt;
-
-import java.util.Scanner;
+import com.github.oxyzero.volt.*;
 
 public class UdpTest {
 
     public static void main(String[] args) {
-        Server server = Volt.server("tcp", 30600);
+        Volt.kill(30600, 2);
 
-        server.listen(":calculator", (request) -> {
-            String operation = null;
+        Server server = Volt.server("udp", 30600);
 
-            while (true) {
-                operation = request.listen();
-
-                if (operation == null) {
-                    continue;
-                }
-
-                if (operation.equals("exit")) {
-                    break;
-                }
-
-                String[] data = operation.split("\\+");
-
-                int result = 0;
-                for (String number : data) {
-                    number = number.trim();
-
-                    if (number.isEmpty()) {
-                        continue;
-                    }
-
-                    result += Integer.parseInt(number.trim());
-                }
-
-                request.reply(result);
-                System.out.print("");
-
-            }
+        server.listen(":package|:version", (request) -> {
+            System.out.println(request.message());
+            System.out.println("Package: " + request.get("package").get(0));
+            System.out.println("Version: " + request.get("version").get(0));
+            System.out.println("Server listened the request on port: " + server.getPort());
         });
 
-        Client client = Volt.client("tcp");
+        Client client = Volt.client("udp");
 
-        Scanner scanner = new Scanner(System.in);
-
-        client.send(":calculator", Volt.localhost(30600), (request) -> {
-            while (true) {
-                String argument = "";
-                    System.out.println("Sum: ");
-                    argument = scanner.nextLine();
-
-                    request.reply(argument.trim());
-
-                    if (argument.equals("exit")) {
-                        return;
-                    }
-
-                    String result = request.listen();
-
-                    System.out.println("Result: " + result);
-                    System.out.print("");
-            }
-        });
-
-        client.after(1).every(1).send(":message", "all:30600", "Hello Volt!")
-              .after(5).stop();
+        client.every(1).send(":package|:version", Volt.localhost(30600), "Volt|v0.1")
+              .after(2).stop();
     }
+
 
 }
