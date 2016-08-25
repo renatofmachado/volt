@@ -3,8 +3,12 @@ package com.github.oxyzero.volt;
 import com.github.oxyzero.volt.middleware.Middleware;
 import com.github.oxyzero.volt.support.Container;
 import com.github.oxyzero.volt.support.ServiceProvider;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -24,14 +28,16 @@ public abstract class Server {
     protected final Map<String, List<Middleware>> middlewares;
 
     /**
-     * Routes.
+     * Router.
      */
-    protected final Map<String, Connection> routes;
+    private final Router router;
 
     /**
      * Server connected port.
      */
     protected int connectedPort;
+
+    //private Socket<T> socket;
     
     /**
      * If the server is active.
@@ -41,25 +47,59 @@ public abstract class Server {
     protected Server() {
         this.services = new Container();
         this.middlewares = new HashMap<>();
-        this.active = false;
-        this.connectedPort = -1;
-        this.routes = new HashMap<>();
+        this.closeServerState();
+        this.router = new Router();
     }
+
+    protected abstract Socket<?> socket();
 
     /**
      * Boots the server.
      *
      * @param port The port number.
      */
-    protected abstract void boot(int port);
+    protected void boot(int port)
+    {
+        this.socket().boot(port);
+
+        this.active = true;
+
+        if (port == 0 || this.connectedPort == -1) {
+            this.connectedPort = this.socket().getLocalPort();
+        } else {
+            this.connectedPort = port;
+        }
+    }
 
     /**
      * Restarts the server.
      * 
      * @param port The port number.
      */
-    protected abstract void restart(int port);
-    
+    private void restart(int port)
+    {
+        this.closeServerState();
+        this.socket().restart(port);
+    }
+
+    /**
+     * Shuts the server down.
+     */
+    public synchronized void shutdown()
+    {
+        this.socket().shutdown();
+        this.closeServerState();
+    }
+
+    /**
+     * Changes the state of the server to closed.
+     */
+    private void closeServerState()
+    {
+        this.active = false;
+        this.connectedPort = -1;
+    }
+
     /**
      * Streams the server in the given port.
      *
@@ -69,13 +109,27 @@ public abstract class Server {
 
     public abstract void listen(String route, Connection action);
 
-    public abstract void listen(String route, Consumer<Request> action);
+    public void listen(String route, Consumer<Request> action) {
+        Connection connection = new Connection() {
+            @Override
+            public void run(Request request) {
+                action.accept(request);
+            }
+        };
 
-    public abstract void forget(String route);
+        this.listen(route, connection);
+    }
+
+    /**
+     * Forgets a route.
+     *
+     * @param route Route identifier.
+     */
+    public void forget(String route) {
+        this.router().remove(route);
+    }
     
     public abstract void send(String route, String target, String message);
-    
-    public abstract void shutdown();
     
     /**
      * Returns if the server is currently working.
@@ -260,7 +314,17 @@ public abstract class Server {
     {
         return this.connectedPort;
     }
-    
+
+    /**
+     * Gets the server router.
+     *
+     * @return Router.
+     */
+    public Router router()
+    {
+        return this.router;
+    }
+
     /**
      * Target the given IPv4 with the same port as this server.
      * 

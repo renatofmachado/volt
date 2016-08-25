@@ -16,7 +16,7 @@ public class Container {
     /**
      * Dependencies container.
      */
-    private final Map<String, ServiceProvider> services;
+    private final Map<String, ServiceProvider<?>> services;
 
     public Container() {
         this.services = new HashMap<>();

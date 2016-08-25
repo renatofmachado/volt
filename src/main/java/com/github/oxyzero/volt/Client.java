@@ -60,9 +60,7 @@ public abstract class Client extends TaskManager {
         Task request = new Task() {
             @Override
             public void fire() {
-                client.boot(port);
                 client.send(route, target, message);
-                client.shutdown();
             }
         };
 

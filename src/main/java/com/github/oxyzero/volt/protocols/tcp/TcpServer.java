@@ -4,11 +4,12 @@ import com.github.oxyzero.volt.Connection;
 import com.github.oxyzero.volt.Request;
 import com.github.oxyzero.volt.Server;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -29,6 +30,11 @@ public class TcpServer extends Server {
         super();
     }
 
+    @Override
+    protected com.github.oxyzero.volt.Socket<Socket> socket() {
+        return null;
+    }
+
     public ServerSocket server()
     {
         synchronized (this.server) {
@@ -41,42 +47,40 @@ public class TcpServer extends Server {
      *
      * @param port The port number.
      */
-    @Override
     protected void boot(int port)
     {
-        try {
-            if (this.server != null) {
-                this.restart(port);
-                return;
-            }
-            
-            super.active = true;
-            super.connectedPort = port;
-            this.server = new ServerSocket(port);
-            this.server.setSoTimeout(1000);
-        } catch (IOException ex) {
-            super.connectedPort = -1;
-            super.active = false;
-            throw new IllegalArgumentException("Could not initiate the TCP service because the given port was already in use. " + ex.getMessage());
-        }
+//        try {
+//            if (this.server != null) {
+//                this.restart(port);
+//                return;
+//            }
+//
+//            super.active = true;
+//            super.connectedPort = port;
+//            this.server = new ServerSocket(port);
+//            this.server.setSoTimeout(1000);
+//        } catch (IOException ex) {
+//            super.connectedPort = -1;
+//            super.active = false;
+//            throw new IllegalArgumentException("Could not initiate the TCP service because the given port was already in use. " + ex.getMessage());
+//        }
     }
-    
-    @Override
-    protected void restart(int port) {
-        try {
-            synchronized (this.server) {
-                this.active = false;
-                this.connectedPort = -1;
-                this.server.close();
-                this.server = null;
 
-                this.boot(port);
-            }
-        } catch (NullPointerException e) {
-            this.boot(port);
-        } catch (IOException ex) {
-            throw new IllegalArgumentException(ex.getMessage());
-        }
+    protected void restart(int port) {
+//        try {
+//            synchronized (this.server) {
+//                this.active = false;
+//                this.connectedPort = -1;
+//                this.server.close();
+//                this.server = null;
+//
+//                this.boot(port);
+//            }
+//        } catch (NullPointerException e) {
+//            this.boot(port);
+//        } catch (IOException ex) {
+//            throw new IllegalArgumentException(ex.getMessage());
+//        }
     }
 
     /**
@@ -85,22 +89,22 @@ public class TcpServer extends Server {
     @Override
     public void shutdown()
     {
-        try {
-            synchronized (this.server) {
-                try {
-                    if (this.server != null) {
-                        this.server.close();
-                        this.server = null;
-                    }
-
-                    super.active = false;
-                } catch (IOException ex) {
-                    throw new IllegalArgumentException(ex.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e.getMessage());
-        }
+//        try {
+//            synchronized (this.server) {
+//                try {
+//                    if (this.server != null) {
+//                        this.server.close();
+//                        this.server = null;
+//                    }
+//
+//                    super.active = false;
+//                } catch (IOException ex) {
+//                    throw new IllegalArgumentException(ex.getMessage());
+//                }
+//            }
+//        } catch (Exception e) {
+//            throw new IllegalArgumentException(e.getMessage());
+//        }
     }
 
     /**
@@ -111,43 +115,43 @@ public class TcpServer extends Server {
     @Override
     public void stream(int port)
     {
-        if (this.isActive()) {
-            return;
-        }
-
-        this.boot(port);
-
-        if (port == 0 || super.connectedPort == -1) {
-            super.connectedPort = this.server().getLocalPort();
-        }
-
-        while (this.isActive()) {
-            try {
-                final Socket socket = this.server.accept();
-
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            InputStreamReader isr = new InputStreamReader(socket.getInputStream());
-                            BufferedReader input = new BufferedReader(isr);
-                            PrintWriter output = new PrintWriter(socket.
-                                    getOutputStream(), true);
-
-                            protocol(socket, input, output);
-                            
-                            isr.close();
-                            output.close();
-                            socket.close();
-                        } catch (IOException ex) {
-                            // Don't do anything.
-                        }
-                    }
-                }.start();
-            } catch (IOException ex) {
-                // Don't do anything.
-            }
-        }
+//        if (this.isActive()) {
+//            return;
+//        }
+//
+//        this.boot(port);
+//
+//        if (port == 0 || super.connectedPort == -1) {
+//            super.connectedPort = this.server().getLocalPort();
+//        }
+//
+//        while (this.isActive()) {
+//            try {
+//                final Socket socket = this.server.accept();
+//
+//                new Thread() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            InputStreamReader isr = new InputStreamReader(socket.getInputStream());
+//                            BufferedReader input = new BufferedReader(isr);
+//                            PrintWriter output = new PrintWriter(socket.
+//                                    getOutputStream(), true);
+//
+//                            protocol(socket, input, output);
+//
+//                            isr.close();
+//                            output.close();
+//                            socket.close();
+//                        } catch (IOException ex) {
+//                            // Don't do anything.
+//                        }
+//                    }
+//                }.start();
+//            } catch (IOException ex) {
+//                // Don't do anything.
+//            }
+//        }
 
     }
 
@@ -160,22 +164,23 @@ public class TcpServer extends Server {
     @Override
     public void listen(String route, Connection action)
     {
-        synchronized (this.routes) {
-            this.routes.put(route, action);
-        }
+//        synchronized (this.routes) {
+//            this.routes.put(route, action);
+//        }
     }
 
+    @Override
     public void listen(String route, Consumer<Request> action) {
-        Connection connection = new Connection() {
-            @Override
-            public void run(Request request) {
-                action.accept(request);
-            }
-        };
-
-        this.listen(route, connection);
+//        Connection connection = new Connection() {
+//            @Override
+//            public void run(Request request) {
+//                action.accept(request);
+//            }
+//        };
+//
+//        this.listen(route, connection);
     }
-    
+
     /**
      * Neglects an expected route.
      *
@@ -184,13 +189,13 @@ public class TcpServer extends Server {
     @Override
     public void forget(String route)
     {
-        synchronized (this.routes) {
-            this.routes.remove(route);
-        }
-        
-        synchronized (this.middlewares) {
-            this.middlewares.remove(route);
-        }
+//        synchronized (this.routes) {
+//            this.routes.remove(route);
+//        }
+//
+//        synchronized (this.middlewares) {
+//            this.middlewares.remove(route);
+//        }
     }
 
     /**
@@ -210,43 +215,43 @@ public class TcpServer extends Server {
     @Override
     public void send(String headers, String target, String message)
     {
-        try {
-            synchronized (this.server) {
-                if (this.server.isClosed()) {
-                    throw new IllegalArgumentException("This Tcp instance needs to have a open server to be able to communicate.");
-                }
-            }
-        } catch (NullPointerException e) {
-            throw new IllegalArgumentException("A server needs to be booted in order to be able to communicate.");
-        }
-        
-        String data[] = headers.split(";");
-        StringBuilder builder = new StringBuilder();
-
-        builder.append(data[0]);
-        builder.append(" ");
-        builder.append(message.length());
-        builder.append("\r\n");
-
-        for (int i = 1; i < data.length; i++) {
-            builder.append(data[i]);
-            builder.append("\r\n");
-        }
-        
-        Map<String, Object> arguments = new HashMap<>();
-        arguments.put("volt-route", data[0]);
-        arguments.put("volt-message", message);
-        
-        Request request = new Request(arguments);
-        
-        this.executeBeforeMiddlewares(request);
-
-        message = (String) arguments.get("volt-message");
-
-        builder.append("\r\n");
-        builder.append(message);
-
-        this.protocol(data[0], target, builder.toString());
+//        try {
+//            synchronized (this.server) {
+//                if (this.server.isClosed()) {
+//                    throw new IllegalArgumentException("This Tcp instance needs to have a open server to be able to communicate.");
+//                }
+//            }
+//        } catch (NullPointerException e) {
+//            throw new IllegalArgumentException("A server needs to be booted in order to be able to communicate.");
+//        }
+//
+//        String data[] = headers.split(";");
+//        StringBuilder builder = new StringBuilder();
+//
+//        builder.append(data[0]);
+//        builder.append(" ");
+//        builder.append(message.length());
+//        builder.append("\r\n");
+//
+//        for (int i = 1; i < data.length; i++) {
+//            builder.append(data[i]);
+//            builder.append("\r\n");
+//        }
+//
+//        Map<String, Object> arguments = new HashMap<>();
+//        arguments.put("volt-route", data[0]);
+//        arguments.put("volt-message", message);
+//
+//        Request request = new Request(arguments);
+//
+//        this.executeBeforeMiddlewares(request);
+//
+//        message = (String) arguments.get("volt-message");
+//
+//        builder.append("\r\n");
+//        builder.append(message);
+//
+//        this.protocol(data[0], target, builder.toString());
     }
 
     /**
@@ -258,70 +263,70 @@ public class TcpServer extends Server {
      */
     protected void protocol(Socket socket, BufferedReader input, PrintWriter output)
     {
-        // Handle the request headers.
-        String headers = this.getHeaders(input);
-
-        if (headers == null || headers.isEmpty()) {
-            return;
-        }
-
-        Map<String, Object> args = new HashMap<>();
-
-	// Request example:
-        // :route 250\r\n
-        // Other headers\r\n
-        // Message
-        String[] request = headers.split("\n");
-
-        String[] first = request[0].split(" ");
-        Connection action = null;
-
-        synchronized (this.routes) {
-            if (!this.routes.containsKey(first[0])) {
-                return;
-            }
-
-            action = this.routes.get(first[0]);
-        }
-
-        args.put("volt-route", first[0]);
-        args.put("volt-length", first[1]);
-
-        int i = 1;
-
-        for (; i < request.length; i++) {
-            if (request[i].isEmpty()) {
-                break;
-            }
-
-            // Handle other headers.
-            String[] line = request[i].split(":");
-            args.put(line[0], line[1]);
-        }
-
-        StringBuilder message = new StringBuilder();
-
-        i++;
-
-        for (; i < request.length; i++) {
-            message.append(request[i]);
-        }
-
-        args.put("volt-message", message.toString());
-        args.put("volt-from", socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
-        args.put("volt-hostname", socket.getInetAddress().getHostName());
-        args.put("volt-input", input);
-        args.put("volt-output", output);
-        args.put("volt-socket", socket);
-        args.put("volt-address", socket.getInetAddress());
-        
-        Request data = new Request(args);
-        
-        this.executeBeforeMiddlewares(data);
-        
-        action.run(new Request(args));
-        
-        this.executeAfterMiddlewares(data);
+//        // Handle the request headers.
+//        String headers = this.getHeaders(input);
+//
+//        if (headers == null || headers.isEmpty()) {
+//            return;
+//        }
+//
+//        Map<String, Object> args = new HashMap<>();
+//
+//	// Request example:
+//        // :route 250\r\n
+//        // Other headers\r\n
+//        // Message
+//        String[] request = headers.split("\n");
+//
+//        String[] first = request[0].split(" ");
+//        Connection action = null;
+//
+//        synchronized (this.routes) {
+//            if (!this.routes.containsKey(first[0])) {
+//                return;
+//            }
+//
+//            action = this.routes.get(first[0]);
+//        }
+//
+//        args.put("volt-route", first[0]);
+//        args.put("volt-length", first[1]);
+//
+//        int i = 1;
+//
+//        for (; i < request.length; i++) {
+//            if (request[i].isEmpty()) {
+//                break;
+//            }
+//
+//            // Handle other headers.
+//            String[] line = request[i].split(":");
+//            args.put(line[0], line[1]);
+//        }
+//
+//        StringBuilder message = new StringBuilder();
+//
+//        i++;
+//
+//        for (; i < request.length; i++) {
+//            message.append(request[i]);
+//        }
+//
+//        args.put("volt-message", message.toString());
+//        args.put("volt-from", socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
+//        args.put("volt-hostname", socket.getInetAddress().getHostName());
+//        args.put("volt-input", input);
+//        args.put("volt-output", output);
+//        args.put("volt-socket", socket);
+//        args.put("volt-address", socket.getInetAddress());
+//
+//        Request data = new Request(args);
+//
+//        this.executeBeforeMiddlewares(data);
+//
+//        action.run(new Request(args));
+//
+//        this.executeAfterMiddlewares(data);
     }
 
     /**
@@ -333,37 +338,39 @@ public class TcpServer extends Server {
      */
     protected void protocol(String route, String target, String message)
     {
-        String[] targetData = target.split(":");
-
-        if (targetData.length < 2) {
-            throw new IllegalArgumentException("Target must be defined as IPv4:Port.");
-        }
-
-        try {
-            Socket socket = new Socket(targetData[0], Integer.parseInt(targetData[1]));
-            this.reply(socket, message);
-            
-            final Map<String, Object> args = new HashMap<>();
-            
-            args.put("volt-message", message);
-            args.put("volt-route", route);
-            args.put("volt-length", message.length());
-            args.put("volt-from", socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
-            args.put("volt-hostname", socket.getInetAddress().getHostName());
-            args.put("volt-input", new BufferedReader(new InputStreamReader(socket.getInputStream())));
-            args.put("volt-output", new PrintWriter(socket.getOutputStream(), true));
-            args.put("volt-socket", socket);
-            args.put("volt-address", socket.getInetAddress());
-            args.put("volt-target", target);
-            
-            Request data = new Request(args);
-            
-            this.executeAfterMiddlewares(data);
-            
-            socket.close();
-        } catch (IOException ex) {
-            // Don't do anything.
-        }
+//        String[] targetData = target.split(":");
+//
+//        if (targetData.length < 2) {
+//            throw new IllegalArgumentException("Target must be defined as IPv4:Port.");
+//        }
+//
+//        try {
+//            // this.send(headers, target, message);
+//            // this.send(headers, target, Response);
+//            Socket socket = new Socket(targetData[0], Integer.parseInt(targetData[1]));
+//            this.reply(socket, message);
+//
+//            final Map<String, Object> args = new HashMap<>();
+//
+//            args.put("volt-message", message);
+//            args.put("volt-route", route);
+//            args.put("volt-length", message.length());
+//            args.put("volt-from", socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
+//            args.put("volt-hostname", socket.getInetAddress().getHostName());
+//            args.put("volt-input", new BufferedReader(new InputStreamReader(socket.getInputStream())));
+//            args.put("volt-output", new PrintWriter(socket.getOutputStream(), true));
+//            args.put("volt-socket", socket);
+//            args.put("volt-address", socket.getInetAddress());
+//            args.put("volt-target", target);
+//
+//            Request data = new Request(args);
+//
+//            this.executeAfterMiddlewares(data);
+//
+//            socket.close();
+//        } catch (IOException ex) {
+//            // Don't do anything.
+//        }
     }
 
     /**
@@ -397,7 +404,7 @@ public class TcpServer extends Server {
 //
 //            while ((lines = input.readLine()) != null) {
 //                headers += '\n' + lines;
-//                
+//
 //                if (headers.endsWith("\r\n")) {
 //                    break;
 //                }

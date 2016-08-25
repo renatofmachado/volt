@@ -2,6 +2,7 @@ package com.github.oxyzero.volt;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -12,9 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A class that handles the request received by a communications protocol.
- * 
- * @author Renato Machado
+ * This class interacts with the end-user and provides information about the received request.
  */
 public class Request {
     
@@ -24,13 +23,19 @@ public class Request {
     private final Map<String, Object> args;
 
     /**
+     * Variables that can be attached to the request.
+     */
+    private final Map<String, List<String>> variables;
+
+    /**
      * Requester.
      */
     private final Requester requester;
 
-    public Request(Map<String, Object> args) 
+    public Request(Map<String, Object> args, Map<String, List<String>> variables)
     {
         this.args = args;
+        this.variables = variables;
         this.requester = new Requester(args);
     }
     
@@ -41,8 +46,8 @@ public class Request {
      */
     public void message(String message)
     {
-        this.args.put("volt-message", message);
-        this.args.put("volt-length", ((String) this.args.get("volt-message")).length());
+        this.args.put("message", message);
+        this.args.put("length", ((String) this.args.get("message")).length());
     }
     
     /**
@@ -52,7 +57,7 @@ public class Request {
      */
     public String message()
     {
-        return (String) this.args.get("volt-message");
+        return (String) this.args.get("message");
     }
     
     /**
@@ -62,7 +67,7 @@ public class Request {
      */
     public int length()
     {
-        return (Integer) this.args.get("volt-length");
+        return (Integer) this.args.get("length");
     }
 
     /**
@@ -82,7 +87,7 @@ public class Request {
      */
     public String route()
     {
-        return (String) this.args.get("volt-route");
+        return (String) this.args.get("route");
     }
 
     /**
@@ -93,7 +98,7 @@ public class Request {
      */
     public Socket socket()
     {
-        return (Socket) this.args.get("volt-socket");
+        return (Socket) this.args.get("socket");
     }
 
     /**
@@ -102,9 +107,10 @@ public class Request {
      *
      * @return Input Stream from the socket.
      */
-    public BufferedReader input()
-    {
-        return (BufferedReader) this.args.get("volt-input");
+    public BufferedReader input() throws IOException {
+        InputStreamReader isr = new InputStreamReader(this.socket().getInputStream());
+
+        return new BufferedReader(isr);
     }
 
     /**
@@ -113,9 +119,8 @@ public class Request {
      *
      * @return Output Stream from the socket.
      */
-    public PrintWriter output()
-    {
-        return (PrintWriter) this.args.get("volt-output");
+    public PrintWriter output() throws IOException {
+        return new PrintWriter(this.socket().getOutputStream(), true);
     }
     
     /**
@@ -125,7 +130,7 @@ public class Request {
      * @param values Variable values.
      */
     public void put(String variable, List<String> values) {
-        this.args.put(variable, values);
+        this.variables.put(variable, values);
     }
     
     /**
@@ -141,7 +146,7 @@ public class Request {
      */
     public List<String> get(String variable)
     {
-        return (List<String>) this.args.get(variable);
+        return this.variables.get(variable);
     }
 
     public String listen() {
@@ -156,8 +161,10 @@ public class Request {
         return new String(response).trim();
     }
 
-    public <V> void reply(V value) {
-        this.output().println(value);
+    public <V> void reply(V value) throws IOException {
+        if (this.output() != null) {
+            this.output().println(value);
+        }
     }
 
     /**
@@ -171,10 +178,10 @@ public class Request {
         String requester = this.requester().from();
         
         try {
-            Enumeration e = NetworkInterface.getNetworkInterfaces();
+            Enumeration<?> e = NetworkInterface.getNetworkInterfaces();
             while (e.hasMoreElements()) {
                 NetworkInterface n = (NetworkInterface) e.nextElement();
-                Enumeration ee = n.getInetAddresses();
+                Enumeration<?> ee = n.getInetAddresses();
                 while (ee.hasMoreElements()) {
                     InetAddress i = (InetAddress) ee.nextElement();
                     

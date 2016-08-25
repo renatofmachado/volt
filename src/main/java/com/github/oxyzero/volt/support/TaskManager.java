@@ -99,6 +99,9 @@ public class TaskManager {
         return this;
     }
 
+    /**
+     * Schedule the manager to be destroyed.
+     */
     public void stop() {
         Task stop = new Task() {
             @Override

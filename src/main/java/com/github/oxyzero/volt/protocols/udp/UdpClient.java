@@ -3,12 +3,9 @@ package com.github.oxyzero.volt.protocols.udp;
 import com.github.oxyzero.volt.Client;
 import com.github.oxyzero.volt.Connection;
 import com.github.oxyzero.volt.Request;
+import com.github.oxyzero.volt.support.RequestBuilder;
 import com.github.oxyzero.volt.support.Task;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -42,20 +39,12 @@ public class UdpClient extends Client {
         Task request = new Task() {
             @Override
             public void fire() {
-                Map<String, Object> args = new HashMap<>();
-                args.put("volt-message", "");
-                args.put("volt-length", 0);
-                args.put("volt-route", route);
-                args.put("volt-target", target);
+                RequestBuilder requestBuilder = new RequestBuilder();
+                requestBuilder.message("");
+                requestBuilder.route(route);
+                requestBuilder.target(target);
 
-                try {
-                    String address = target.split(":")[0];
-                    args.put("volt-address", InetAddress.getByName(address));
-                } catch (UnknownHostException e) {
-                    throw new IllegalArgumentException("The target is not a known address.");
-                }
-
-                Request request = new Request(args);
+                Request request = requestBuilder.build();
 
                 connection.onEnter();
                 connection.run(request);

@@ -1,6 +1,5 @@
 package com.github.oxyzero.volt;
 
-import java.net.InetAddress;
 import java.util.Map;
 
 /**
@@ -16,27 +15,17 @@ public class Requester {
     private String target;
 
     /**
-     * The address of the requester.
-     */
-    private InetAddress address;
-
-    /**
      * The hostname of the requester.
      */
     private String hostname;
 
-    public Requester(String target, InetAddress address) {
-        this.target = target;
-        this.address = address;
-    }
-
     public Requester(Map<String, Object> args) {
-        this.target = (String) args.get("volt-target");
-        this.address = (InetAddress) args.get("volt-address");
-        this.hostname = (String) args.get("volt-hostname");
+        this.target = (String) args.get("target");
+        this.hostname = (String) args.get("hostname");
     }
 
     public String id() {
+        // TODO: Retrieve a unique identification of the requester. Maybe make a combo of the hostname + ip?
         return null;
     }
 
@@ -60,16 +49,6 @@ public class Requester {
     }
 
     /**
-     * Returns the InetAddress of the requester.
-     *
-     * @return InetAddress of the requester.
-     */
-    public InetAddress address()
-    {
-        return this.address;
-    }
-
-    /**
      * Returns the target IPv4:Port.
      * Should only be used for client-side actions.
      *
@@ -78,16 +57,5 @@ public class Requester {
     public String target()
     {
         return this.target;
-    }
-
-
-    /**
-     * Gets the hostname that is associated to the requester address.
-     *
-     * @return Hostname based on the requester address.
-     */
-    public String hostname()
-    {
-        return this.hostname;
     }
 }
