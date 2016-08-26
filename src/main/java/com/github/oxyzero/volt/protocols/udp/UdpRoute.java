@@ -32,13 +32,18 @@ public class UdpRoute extends Route {
         // Variable :name -> [ Students, foobar ]
         // Variable :file -> [ Students.json, foobar.xml ]
 
-        String[] routeTokens = request.route().split("\\|");
+        UdpMessage message = new UdpMessage();
+        String delimiter = message.getMessageDelimiter();
+        String escaped = "\\" + delimiter;
+        String delimiterRegex = message.getMessageDelimiterRegex();
+
+        String[] routeTokens = request.route().split(delimiterRegex);
 
         if (routeTokens.length == 0) {
             return true;
         }
 
-        String[] requestTokens = request.message().split("\\|");
+        String[] requestTokens = request.message().split(delimiterRegex);
 
         for (int i = 0; i < routeTokens.length; i++) {
             routeTokens[i] = routeTokens[i].substring(1);
@@ -49,11 +54,18 @@ public class UdpRoute extends Route {
 
         int length = requestTokens.length / routeTokens.length;
 
+        String cleanedMessage = "";
+
         for (int i = 0; i < length; i++) {
             for (String routeToken : routeTokens) {
+                requestTokens[item] = requestTokens[item].replace(escaped, delimiter);
+                cleanedMessage += requestTokens[item] + delimiter;
                 request.get(routeToken).add(requestTokens[item++]);
             }
+
         }
+
+        request.message(cleanedMessage.substring(0, cleanedMessage.length() - delimiter.length()));
 
         return true;
     }

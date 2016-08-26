@@ -38,7 +38,51 @@ public class Request {
         this.variables = variables;
         this.requester = new Requester(args);
     }
-    
+
+    /**
+     * Gets all of the headers.
+     *
+     * @return Headers.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, String> headers() {
+        return (Map<String, String>) this.args.get("headers");
+    }
+
+    /**
+     * Gets the value of a header.
+     *
+     * @param key Header key.
+     * @return Header value or null if the header does not exist.
+     */
+    public String header(String key)
+    {
+        return this.headers().get(key);
+    }
+
+    /**
+     * Gets the value of an header if it exists, or a default value.
+     *
+     * @param key Header key.
+     * @param defaultValue Value returned if the header doesn't exist.
+     * @return Header value, or default value.
+     */
+    public String header(String key, String defaultValue)
+    {
+        return (this.hasHeader(key)) ? this.header(key) : defaultValue;
+    }
+
+    /**
+     * Checks if a header exists.
+     *
+     * @param key Header key.
+     * @return True if the header exists, false otherwise.
+     */
+    public boolean hasHeader(String key)
+    {
+        return this.headers().containsKey(key);
+    }
+
     /**
      * Puts a new message on the "message" argument.
      * 

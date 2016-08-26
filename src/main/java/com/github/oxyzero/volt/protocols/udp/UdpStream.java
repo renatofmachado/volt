@@ -35,17 +35,18 @@ public class UdpStream extends Thread {
     public void run() {
         RequestBuilder requestBuilder = new RequestBuilder();
 
-        UdpMessage message;
+        UdpMessage message = new UdpMessage();
         String target;
 
         synchronized (this.packet) {
-            message = new UdpMessage(this.packet);
+            message.toReceive(this.packet);
             target = (this.packet.getAddress() + ":" + this.packet.getPort()).substring(1);
             requestBuilder.target(target);
         }
 
         final String route = this.server.router().resolve(message.header("route-checksum"));
         requestBuilder.route(route);
+        requestBuilder.headers(message.headers());
 
         Integer numberOfPackets = Integer.parseInt(message.header("packets"));
 

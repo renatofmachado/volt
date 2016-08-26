@@ -213,7 +213,7 @@ public class TcpServer extends Server {
      * @param message Message.
      */
     @Override
-    public void send(String headers, String target, String message)
+    public void send(String route, String target, String message, String... headers)
     {
 //        try {
 //            synchronized (this.server) {

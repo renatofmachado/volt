@@ -55,12 +55,12 @@ public abstract class Client extends TaskManager {
      * @param target IPv4:Port of the target.
      * @param message Message.
      */
-    public Client send(String route, String target, String message) {
+    public Client send(String route, String target, String message, String... headers) {
 
         Task request = new Task() {
             @Override
             public void fire() {
-                client.send(route, target, message);
+                client.send(route, target, message, headers);
             }
         };
 

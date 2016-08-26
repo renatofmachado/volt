@@ -78,6 +78,9 @@ public class Router {
             if (! route.matches(routePath) || ! route.handle(request)) {
                 throw new IllegalArgumentException("No route was a match for the given path.");
             }
+
+            route.run(request);
+            return;
         }
 
         this.routes()

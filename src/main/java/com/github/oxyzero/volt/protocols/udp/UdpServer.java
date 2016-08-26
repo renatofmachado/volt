@@ -68,7 +68,7 @@ public class UdpServer extends Server {
     }
 
     @Override
-    public void send(String route, String target, String message) {
+    public void send(String route, String target, String message, String... headers) {
         try {
             if (this.socket().server() == null) {
                 this.boot(0);
@@ -93,14 +93,11 @@ public class UdpServer extends Server {
         requestBuilder.message(message);
         requestBuilder.route(route);
         requestBuilder.target(target);
+        requestBuilder.headers(headers);
 
         Request request = requestBuilder.build();
 
-        // TODO: Apply Before Middleware
-
         this.socket().send(request);
-
-        // TODO:: Apply After Middleware
 
         this.socket().shutdown();
     }

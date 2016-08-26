@@ -2,8 +2,6 @@ package com.github.oxyzero.volt;
 
 public abstract class Route {
 
-    private String headers;
-
     private String path;
 
     private Connection connection;
@@ -53,22 +51,6 @@ public abstract class Route {
      */
     public void path(String path) {
         this.path = this.clean(path);
-    }
-
-    /**
-     * Gets the headers of the route.
-     *
-     * @return Headers of the route.
-     */
-    public String headers() {
-        return this.headers;
-    }
-
-    /**
-     * Sets the headers of the route.
-     */
-    public void headers(String headers) {
-        this.headers = headers;
     }
 
     /**

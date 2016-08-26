@@ -129,7 +129,7 @@ public abstract class Server {
         this.router().remove(route);
     }
     
-    public abstract void send(String route, String target, String message);
+    public abstract void send(String route, String target, String message, String... headers);
     
     /**
      * Returns if the server is currently working.

@@ -47,9 +47,9 @@ public class TcpClient extends Client {
      * @param message Message.
      */
     @Override
-    public Client send(String headers, String target, String message) {
+    public Client send(String route, String target, String message, String... headers) {
         // Redeclared method just to override the documentation.
-        return super.send(headers, target, message);
+        return super.send(route, target, message, headers);
     }
 
     @Override

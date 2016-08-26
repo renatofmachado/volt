@@ -2,11 +2,11 @@ package com.github.oxyzero.volt.protocols.udp;
 
 import com.github.oxyzero.volt.Request;
 import com.github.oxyzero.volt.Socket;
-import com.github.oxyzero.volt.support.Checksum;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class UdpSocket implements Socket<DatagramSocket> {
 
@@ -80,29 +80,8 @@ public class UdpSocket implements Socket<DatagramSocket> {
 
     @Override
     public void send(Request request) {
-        String checksumRoute = Checksum.make(request.route());
-        String checksumMessage = Checksum.make(request.message());
 
-        int parts = this.calculateNumberOfPacketsToSend(request.length(), checksumRoute.length(), checksumMessage.length());
-
-        String[] messages = new String[parts];
-        String message = request.message();
-
-        for (int i = 1; i <= parts; i++) {
-            String headers = i + ":" + parts + ":" + checksumRoute + ":" + checksumMessage + "@";
-
-            int cut = 512 - headers.length();
-            int messageLength = message.length();
-
-            if (cut > messageLength) {
-                cut = messageLength;
-            }
-
-            String part = message.substring(0, cut);
-            message = message.substring(cut, message.length());
-
-            messages[i - 1] = headers + part;
-        }
+        List<String> messages = new UdpMessage().toSend(request);
 
         InetAddress address;
 
@@ -111,6 +90,8 @@ public class UdpSocket implements Socket<DatagramSocket> {
         } catch (UnknownHostException ex) {
             throw new IllegalArgumentException(ex.getMessage());
         }
+
+        // TODO: Execute Before Middleware
 
         for (String part : messages) {
             try {
@@ -133,31 +114,4 @@ public class UdpSocket implements Socket<DatagramSocket> {
         }
     }
 
-    private int calculateNumberOfPacketsToSend(int message, int checksumRoute, int checksumMessage) {
-        int parts = 0, length = message;
-
-        while (length > 0) {
-            length -= 512;
-            parts++;
-        }
-
-        // Counts the number of digits a packet can have, i.e "22:22" + the separator token ":".
-        int partsOffset = String.valueOf(parts).length() * 2 + 1;
-
-        // Counts the number of digits of each checksum and adds the separator token ":".
-        int checksumOffset = checksumRoute + checksumMessage + 1;
-
-        // Adds both offsets and the separator token "@".
-        int offset = 512 - (partsOffset + checksumOffset + 1);
-
-        length = message;
-        parts = 0;
-
-        while (length > 0) {
-            length -= offset;
-            parts++;
-        }
-
-        return parts;
-    }
 }

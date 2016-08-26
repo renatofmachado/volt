@@ -38,6 +38,21 @@ public class RequestBuilder {
         this.arguments.put("socket", socket);
     }
 
+    public void headers(String[] headers) {
+        Map<String, String> headersMap = new HashMap<>();
+
+        for (String header : headers) {
+            String[] tokens = header.split(":", 2);
+            headersMap.put(tokens[0].trim(), tokens[1].trim());
+        }
+
+        this.arguments.put("headers", headersMap);
+    }
+
+    public void headers(Map<String, String> headers) {
+        this.arguments.put("headers", headers);
+    }
+
     public void put(String key, List<String> value) {
         this.variables.put(key, value);
     }
